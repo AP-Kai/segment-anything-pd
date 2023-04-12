@@ -1,4 +1,4 @@
-# Segment Anything
+# Segment Anything With PaddlePaddle
 
 **[Meta AI Research, FAIR](https://ai.facebook.com/research/)**
 
@@ -22,13 +22,13 @@ The code requires `python>=3.8`, as well as `pytorch>=1.7` and `torchvision>=0.8
 Install Segment Anything:
 
 ```
-pip install git+https://github.com/facebookresearch/segment-anything.git
+pip install https://github.com/AP-Kai/segment-anything-pd.git
 ```
 
 or clone the repository locally and install with
 
 ```
-git clone git@github.com:facebookresearch/segment-anything.git
+git clone https://github.com/AP-Kai/segment-anything-pd.git
 cd segment-anything; pip install -e .
 ```
 
@@ -44,7 +44,7 @@ First download a [model checkpoint](#model-checkpoints). Then the model can be u
 
 ```
 from segment_anything import build_sam, SamPredictor 
-predictor = SamPredictor(build_sam(checkpoint="</path/to/model.pth>"))
+predictor = SamPredictor(build_sam(checkpoint="</path/to/model.pdparams>"))
 predictor.set_image(<your_image>)
 masks, _, _ = predictor.predict(<input_prompts>)
 ```
@@ -53,7 +53,7 @@ or generate masks for an entire image:
 
 ```
 from segment_anything import build_sam, SamAutomaticMaskGenerator
-mask_generator = SamAutomaticMaskGenerator(build_sam(checkpoint="</path/to/model.pth>"))
+mask_generator = SamAutomaticMaskGenerator(build_sam(checkpoint="</path/to/model.pdparams>"))
 masks = mask_generator_generate(<your_image>)
 ```
 
