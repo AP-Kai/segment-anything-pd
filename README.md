@@ -70,16 +70,6 @@ See the examples notebooks on [using SAM with prompts](/notebooks/predictor_exam
   <img src="assets/notebook2.png?raw=true" width="48.9%" />
 </p>
 
-## ONNX Export
-
-SAM's lightweight mask decoder can be exported to ONNX format so that it can be run in any environment that supports ONNX runtime, such as in-browser as showcased in the [demo](https://segment-anything.com/demo). Export the model with
-
-```
-python scripts/export_onnx_model.py --checkpoint <path/to/checkpoint> --output <path/to/output>
-```
-
-See the [example notebook](https://github.com/facebookresearch/segment-anything/blob/main/notebooks/onnx_model_example.ipynb) for details on how to combine image preprocessing via SAM's backbone with mask prediction using the ONNX model. It is recommended to use the latest stable version of PyTorch for ONNX export.
-
 ## <a name="Models"></a>Model Checkpoints
 
 Three model versions of the model are available with different backbone sizes. These models can be instantiated by running 
