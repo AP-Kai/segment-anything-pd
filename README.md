@@ -40,7 +40,7 @@ pip install opencv-python pycocotools matplotlib onnxruntime onnx
 
 ## <a name="GettingStarted"></a>Getting Started
 
-First download a [model checkpoint](#model-checkpoints). Then the model can be used in just a few lines to get masks from a given prompt:
+First download a [model checkpoint](#model-checkpoints). Then convert the model to paddle format by 'convert.py'.And then the model can be used in just a few lines to get masks from a given prompt:
 
 ```
 from segment_anything import build_sam, SamPredictor 
