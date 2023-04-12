@@ -81,9 +81,9 @@ def is_box_near_crop_edge(
     """Filter masks at the edge of a crop, but not at the edge of the original image."""
     crop_box_torch = paddle.to_tensor(crop_box, dtype=paddle.float32)
     orig_box_torch = paddle.to_tensor(orig_box, dtype=paddle.float32)
-    boxes = uncrop_boxes_xyxy(boxes, crop_box).float()
-    near_crop_edge = paddle.isclose(boxes, crop_box_torch[None, :], atol=atol, rtol=0)
-    near_image_edge = paddle.isclose(boxes, orig_box_torch[None, :], atol=atol, rtol=0)
+    boxes = uncrop_boxes_xyxy(boxes, crop_box).astype(paddle.float32)
+    near_crop_edge = paddle.isclose(boxes, crop_box_torch[None, :].expand_as(boxes), atol=atol, rtol=0.0)
+    near_image_edge = paddle.isclose(boxes, orig_box_torch[None, :].expand_as(boxes), atol=atol, rtol=0.0)
     near_crop_edge = paddle.logical_and(near_crop_edge, ~near_image_edge)
     return paddle.any(near_crop_edge, axis=1)
 
@@ -111,7 +111,8 @@ def mask_to_rle_pytorch(tensor: paddle.Tensor) -> List[Dict[str, Any]]:
     """
     # Put in fortran order and flatten h,w
     b, h, w = tensor.shape
-    tensor = tensor.permute(0, 2, 1).flatten(1)
+    tensor = tensor.astype(paddle.int64)
+    tensor = tensor.transpose([0, 2, 1]).flatten(1)
 
     # Compute change indices
     diff = tensor[:, 1:] ^ tensor[:, :-1]
@@ -119,8 +120,9 @@ def mask_to_rle_pytorch(tensor: paddle.Tensor) -> List[Dict[str, Any]]:
 
     # Encode run length
     out = []
+    cur_idxs = paddle.to_tensor([], dtype=paddle.int64)
     for i in range(b):
-        cur_idxs = change_indices[change_indices[:, 0] == i, 1]
+        cur_idxs = change_indices[change_indices[:, 0] == i][:, 1]
         cur_idxs = paddle.concat(
             [
                 paddle.to_tensor([0], dtype=cur_idxs.dtype),
@@ -261,7 +263,8 @@ def uncrop_masks(
     # Coordinate transform masks
     pad_x, pad_y = orig_w - (x1 - x0), orig_h - (y1 - y0)
     pad = (x0, pad_x - x0, y0, pad_y - y0)
-    return paddle.nn.functional.pad(masks, pad, value=0)
+    masks = masks.astype(paddle.int64)
+    return paddle.nn.functional.pad(masks.unsqueeze(1), pad, value=0, data_format="NCHW").squeeze(1)
 
 
 def remove_small_regions(
@@ -311,27 +314,33 @@ def batched_mask_to_box(masks: paddle.Tensor) -> paddle.Tensor:
 
     # Normalize shape to CxHxW
     shape = masks.shape
-
+    masks = masks.astype(dtype=paddle.int64)
     h, w = shape[-2:]
     if len(shape) > 2:
-        if len(shape) != 3:
-            masks = masks.flatten(0, -3)
+        masks = masks.flatten(0, -3)
     else:
         masks = masks.unsqueeze(0)
 
     # Get top and bottom edges
     in_height = paddle.max(masks, axis=-1)
     in_height_coords = in_height * paddle.arange(h)[None, :]
-    bottom_edges, _ = paddle.max(in_height_coords, axis=-1)
-    in_height_coords = in_height_coords + h * (~in_height)
-    top_edges, _ = paddle.min(in_height_coords, axis=-1)
+
+    bottom_edges = paddle.max(in_height_coords, axis=-1)
+    in_height = in_height.astype(paddle.bool)
+    in_height = ~in_height
+    in_height = in_height.astype(paddle.int64)
+    in_height_coords = in_height_coords + h * (in_height)
+    top_edges = paddle.min(in_height_coords, axis=-1)
 
     # Get left and right edges
-    in_width, _ = paddle.max(masks, axis=-2)
+    in_width = paddle.max(masks, axis=-2)
     in_width_coords = in_width * paddle.arange(w)[None, :]
-    right_edges, _ = paddle.max(in_width_coords, axis=-1)
-    in_width_coords = in_width_coords + w * (~in_width)
-    left_edges, _ = paddle.min(in_width_coords, axis=-1)
+    right_edges = paddle.max(in_width_coords, axis=-1)
+    in_width = in_width.astype(paddle.bool)
+    in_width = ~in_width
+    in_width = in_width.astype(paddle.int64)
+    in_width_coords = in_width_coords + w * (in_width)
+    left_edges = paddle.min(in_width_coords, axis=-1)
 
     # If the mask is empty the right edge will be to the left of the left edge.
     # Replace these boxes with [0, 0, 0, 0]
@@ -341,7 +350,7 @@ def batched_mask_to_box(masks: paddle.Tensor) -> paddle.Tensor:
 
     # Return to original shape
     if len(shape) > 2:
-        out = out.reshape(*shape[:-2], 4)
+        out = out.reshape([*shape[:-2], 4])
     else:
         out = out[0]
 

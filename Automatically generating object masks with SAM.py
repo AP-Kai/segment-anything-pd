@@ -30,7 +30,6 @@ plt.axis('off')
 plt.show()
 
 sam_checkpoint = "./models/sam_vit_b_01ec64.pdparams"
-device = "gpu"
 model_type = "vit_b"
 
 import sys
@@ -40,17 +39,18 @@ from segment_anything import sam_model_registry, SamAutomaticMaskGenerator, SamP
 sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
 # sam.to(device=device)
 
-mask_generator = SamAutomaticMaskGenerator(sam)
-
-masks = mask_generator.generate(image)
-print(len(masks))
-print(masks[0].keys())
-
-plt.figure(figsize=(20,20))
-plt.imshow(image)
-show_anns(masks)
-plt.axis('off')
-plt.show()
+# mask_generator = SamAutomaticMaskGenerator(sam)
+#
+# masks = mask_generator.generate(image)
+#
+# print(len(masks))
+# print(masks[0].keys())
+#
+# plt.figure(figsize=(20,20))
+# plt.imshow(image)
+# show_anns(masks)
+# plt.axis('off')
+# plt.show()
 
 mask_generator_2 = SamAutomaticMaskGenerator(
     model=sam,

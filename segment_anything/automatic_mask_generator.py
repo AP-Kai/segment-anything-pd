@@ -232,11 +232,10 @@ class SamAutomaticMaskGenerator:
         if len(crop_boxes) > 1:
             # Prefer masks from smaller crops
             scores = 1 / box_area(data["crop_boxes"])
-            scores = scores.to(data["boxes"].device)
             keep_by_nms = batched_nms(
-                data["boxes"].float(),
-                scores,
-                paddle.zeros(len(data["boxes"])),  # categories
+                boxes=data["boxes"].astype(paddle.float32),
+                scores=scores,
+                categories=paddle.zeros(len(data["boxes"])),  # categories
                 iou_threshold=self.crop_nms_thresh,
             )
             data.filter(keep_by_nms)
@@ -271,9 +270,9 @@ class SamAutomaticMaskGenerator:
 
         # Remove duplicates within this crop.
         keep_by_nms = batched_nms(
-            data["boxes"].float(),
-            data["iou_preds"],
-            paddle.zeros(len(data["boxes"])),  # categories
+            boxes=data["boxes"].astype(paddle.float32),
+            scores=data["iou_preds"],
+            categories=paddle.zeros(len(data["boxes"])),  # categories
             iou_threshold=self.box_nms_thresh,
         )
         data.filter(keep_by_nms)
@@ -377,9 +376,9 @@ class SamAutomaticMaskGenerator:
         masks = paddle.concat(new_masks,axis=0)
         boxes = batched_mask_to_box(masks)
         keep_by_nms = batched_nms(
-            boxes.float(),
-            paddle.to_tensor(scores),
-            paddle.zeros(len(boxes)),  # categories
+            boxes=boxes.astype(paddle.float32),
+            scores=paddle.to_tensor(scores),
+            categories=paddle.zeros(len(boxes)),  # categories
             iou_threshold=nms_thresh,
         )
 
