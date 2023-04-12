@@ -1,0 +1,10 @@
+matplotlib==3.2.2
+numpy==1.22.4
+# onnxruntime==1.14.1
+# onnxruntime_gpu==1.8.0
+opencv_python==4.7.0.68
+# paddlepaddle_gpu==2.3.2.post110
+# Pillow==9.5.0
+pycocotools==2.0
+setuptools==49.2.1
+# torch==2.0.0
