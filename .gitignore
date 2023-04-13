@@ -12,6 +12,7 @@ build/
 dist/
 wheels/
 models/
+uploads/
 
 # pytorch/python/numpy formats
 *.pth

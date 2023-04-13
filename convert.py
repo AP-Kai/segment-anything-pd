@@ -1,7 +1,7 @@
 import torch
-from segment_anything import build_sam_vit_b
+from segment_anything import build_sam_vit_l
 
-sam_checkpoint = "./models/sam_vit_b_01ec64.pth"
+sam_checkpoint = "./models/sam_vit_l_0b3195.pth"
 params = torch.load(sam_checkpoint)
 new = {}
 
@@ -28,9 +28,9 @@ for k, v in params.items():
             v = v.transpose(1, 0)
     new[k] = v
 
-model = build_sam_vit_b()
+model = build_sam_vit_l()
 model.set_state_dict(new)
 
 layer_state_dict = model.state_dict()
 import paddle
-paddle.save(layer_state_dict, "./models/sam_vit_b_01ec64.pdparams")
+paddle.save(layer_state_dict, "./models/sam_vit_l_0b3195.pdparams")

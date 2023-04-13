@@ -195,7 +195,6 @@ def get_amg_kwargs(args):
 def main(args: argparse.Namespace) -> None:
     print("Loading model...")
     sam = sam_model_registry[args.model_type](checkpoint=args.checkpoint)
-    _ = sam.to(device=args.device)
     output_mode = "coco_rle" if args.convert_to_rle else "binary_mask"
     amg_kwargs = get_amg_kwargs(args)
     generator = SamAutomaticMaskGenerator(sam, output_mode=output_mode, **amg_kwargs)
